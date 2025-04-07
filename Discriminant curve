@@ -1,0 +1,32 @@
+// Define the affine space with 12 variables over the rationals
+A<a0,a1,a2,a3,b0,b1,b2,b3,x4,x5,x6,x7> := AffineSpace(Rationals(), 12);
+
+// Define two polynomials in the ring
+f1 := a0*x7 + a1*x4 + a2*x5 + a3*x6;
+f2 := b0*x7^2 + (b1*x4 + b2*x5 + b3*x6)*x7 + x4^2 - x5*x6;
+
+// Define the scheme X cut out by f1 and f2
+X := Scheme(A, [f1, f2]);
+
+// Eliminate parameters a_i, b_i and variables x5, x6, x7 to obtain an implicit equation in x4
+g := Basis(EliminationIdeal(Ideal(X), {a0,a1,a2,a3,b0,b1,b2,b3,x5,x6,x7}))[1];
+
+// Construct the Hessian matrix of g with respect to x5, x6, x7
+M := Matrix(3, 3, [Derivative(Derivative(g, u), v) : u, v in [x5, x6, x7]]);
+
+// Compute the determinant of the Hessian matrix
+det := Determinant(M);
+
+// Factor the determinant and extract the irreducible factor
+Factorization(det)[2][1];
+// Output:
+// a0^2 - a0*a1*b1 + 2*a0*a2*b3 + 2*a0*a3*b2 + a1^2*b0 + a1^2*b2*b3 - a1*a2*b1*b3 - 
+//     a1*a3*b1*b2 + a2^2*b3^2 - 4*a2*a3*b0 + a2*a3*b1^2 - 2*a2*a3*b2*b3 + a3^2*b2^2
+
+// Compute the second prime component of the locus where the Hessian matrix has rank ≤ 1
+PrimeComponents(Scheme(A, Minors(M, 2)))[2];
+// Output:
+// Scheme over Rational Field defined by
+// a0 - 1/2*a1*b1 + a2*b3 + a3*b2,
+// a1^2 - 4*a2*a3,
+// b0 - 1/4*b1^2 + b2*b3
