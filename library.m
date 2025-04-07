@@ -19,7 +19,7 @@ end function;
 // and that contain -I (minus the identity matrix)
 // Input: permutation g generating a subgroup of GL(n, FF)
 // Output: list of subgroups satisfying the condition
-FindLis := function(g)
+FindLis := function(g,FF)
     G := Parent(g);
     M := PermutationMatrix(FF, g);
     Glin := GL(Nrows(M), FF);
