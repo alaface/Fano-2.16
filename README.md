@@ -1,6 +1,6 @@
-# Automorphism Group Analysis
+# Automorphism Groups of Fano Threefolds of Family 2.16
 
-This folder contains the Magma code used to study automorphism groups of certain Fano threefolds, particularly those arising as blow-ups of complete intersections of two quadrics in $\mathbb{P}^5$. The code complements Section 4 of the paper, titled *Automorphism Groups*, and is available in the following files.
+This repository contains Magma code used to study the automorphism groups of Fano threefolds in family 2.16. These varieties are obtained by blowing up the complete intersection of two smooth quadrics in $\mathbb{P}^5$ along a conic. The scripts compute the possible group actions that preserve both the intersection and the conic, and identify the finite groups that can arise as automorphism groups of the resulting blow-ups.
 
 ## Contents
 
