@@ -36,7 +36,7 @@ FindLis := function(g,FF)
     lis := [U`subgroup : U in Subgroups(H)];
 
     // Keep only those containing elements with absolute value matrix equal to M
-    lis := [U : U in lis | &or[AbsMatrix(s) eq M : s in U]];
+    lis := [U : U in lis | &or[AbsMatrix(s,FF) eq M : s in U]];
 
     I := IdentityMatrix(FF, 6);
 
