@@ -1,0 +1,36 @@
+// Magma code to compute Zariski decompositions related to the invariant delta_p(X)
+// This file assumes the function 'qua' for intersection products is available in the library
+
+// Define the base field K = Q(u,v) and a 3-dimensional vector space over it
+K<u,v> := FunctionField(Rationals(), 2);
+V := VectorSpace(K, 3);
+E := V.1;
+C := V.2;
+E12 := V.3;
+K := -C - 2*E;
+
+// ----------------------
+// Zariski decomposition: Case (b)
+// ----------------------
+D := (2-u)*(-K + 4*E) - v*E + (1-u)*E12;
+M := SymmetricMatrix(K, [-1/6, 1, -4, 0, 2, -2]);
+P := V!Kernel(ColumnSubmatrix(M, [2..3])).1;
+P1 := D[1]*P;
+P2 := D - qua(D, C, M)/qua(C, C, M)*C;
+P3 := D;
+N1 := D - P1;
+N2 := D - P2;
+N3 := D - P3;
+
+// ----------------------
+// Zariski decomposition: Case (c.2)
+// ----------------------
+D := (2-u)*(-K + 4*E) - v*E + (1-u)*E12;
+M := SymmetricMatrix(K, [-1/2, 2, -6, 0, 2, -2]);
+P := V!Kernel(ColumnSubmatrix(M, [2..3])).1;
+P1 := D[1]*P;
+P2 := D - qua(D, C, M)/qua(C, C, M)*C;
+P3 := D;
+N1 := D - P1;
+N2 := D - P2;
+N3 := D - P3;
