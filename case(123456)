@@ -1,0 +1,68 @@
+// Define the base field: Cyclotomic field of order 6
+FF<e> := CyclotomicField(6);
+
+// Load external scripts
+load "library.m";
+load "Grassmannian subvarieties.txt";
+
+// Define the symmetric group on 6 elements and a permutation of type (123456)
+G := Sym(6);
+g := G!(1,2,3,4,5,6);
+
+// Find subgroups of GL(6, FF) associated with g that satisfy filtering conditions
+lis := FindLis(g, FF);
+
+// Initialize storage for subgroups and fixed loci
+Grp := [];
+PGrp := [];
+LFix := [];
+
+// Loop over candidate subgroups
+for A in lis do
+    lFix := [];
+
+    // Compute intersection of fixed loci under all elements of A
+    for a in A do
+        // Compute the induced action on Plücker coordinates
+        Wa := Matrix(CoordinateRing(P19), WedgePower(a, 3));
+
+        // Matrix to define fixed point scheme
+        N := Matrix(CoordinateRing(P19), [v, Eltseq(x * Wa)]);
+
+        // Fixed points in the Grassmannian
+        Fix := Scheme(P19, Minors(N, 2)) meet Gr;
+
+        // Intersect with subvariety W
+        Z := Fix meet W;
+
+        lFix := Append(lFix, Z);
+        ZFix := &meet lFix;
+
+        // Skip this subgroup if intersection is empty
+        if Dimension(ZFix) eq -1 then
+            break;
+        end if;
+    end for;
+
+    // If fixed locus is non-empty, store subgroup and data
+    if Dimension(ZFix) ne -1 then
+        LFix := Append(LFix, ZFix);
+        PA := quo< A | -IdentityMatrix(FF, 6) >;
+        Grp := Append(Grp, A);
+        PGrp := Append(PGrp, PA);
+    end if;
+end for;
+
+// Output: Dimensions of fixed loci
+[Dimension(Z) : Z in LFix];
+
+// Output: Names of corresponding projective groups
+[GroupName(G) : G in PGrp];
+
+// Compute fibers over selected fixed loci
+ind := [1, 2];
+comp := [];
+for i in ind do
+    Append(~comp, PrimeComponents(pr(Fiber(pl, LFix[i]))));
+end for;
+comp;
