@@ -11,7 +11,7 @@ end function;
 // Returns the matrix of absolute values of the entries of M
 // Input: matrix M over a finite field FF
 // Output: matrix with entries |M_{i,j}| in FF
-AbsMatrix := function(M)
+AbsMatrix := function(M,FF)
     return Matrix([[Norm(FF!M[i,j]) : j in [1..Ncols(M)]] : i in [1..Nrows(M)]]);
 end function;
 
