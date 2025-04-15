@@ -1,0 +1,34 @@
+// Define a projective scheme invariant under the subgroup H of S_6
+PermutationScheme := function(H)
+    P<a0,a1,a2,a3,a4,a5> := ProjectiveSpace(Rationals(), 5);
+    eqns := [];
+    for g in Generators(H) do
+        M := Matrix([
+            [1, 1, 1, 1, 1, 0],
+            [a0, a1, a2, a3, a4, a5],
+            [a0^g, a1^g, a2^g, a3^g, a4^g, a5^g]
+        ]);
+        eqns cat:= Minors(M, 3);
+    end for;
+    X := Scheme(P, eqns);
+    
+    // Remove trivial or degenerate components
+    Y := Scheme(P, &*[a0,a1,a2,a3,a4,a5]) 
+           join
+         Scheme(P, &*[P.i - P.j : i,j in [1..6] | i lt j]);
+    return Complement(X, Y);
+end function;
+
+// Filter subgroups of G based on the dimension of the associated scheme
+G := Stabilizer(Sym(6), 6);
+lis := [];
+for K in Subgroups(G) do
+    H := K`subgroup;
+    X := PermutationScheme(H);
+    if Dimension(X) ge 0 then 
+        Append(~lis, H); 
+    end if;
+end for;
+
+// List the relevant subgroups
+lis;
