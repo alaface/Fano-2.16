@@ -20,6 +20,7 @@ PermutationScheme := function(H)
 end function;
 
 // Filter subgroups of G based on the dimension of the associated scheme
+G := Sym(6);
 lis := [];
 for H in Subgroups(G) do
     H := H`subgroup;
