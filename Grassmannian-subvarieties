@@ -11,10 +11,10 @@ M := Matrix(R, [
     [c0,c1,c2,c3,c4,c5]
 ]);
 
-// Generate the Plücker coordinates (3x3 minors)
+// Generate the Plucker coordinates (3x3 minors)
 B := Minors(M, 3);
 
-// Define the Plücker embedding into ℙ¹⁹
+// Define the Plucker embedding into ℙ¹⁹
 P19<z012,z013,z014,z015,z023,z024,z025,z034,z035,z045,
     z123,z124,z125,z134,z135,z145,z234,z235,z245,z345> := ProjectiveSpace(FF, 19);
 
