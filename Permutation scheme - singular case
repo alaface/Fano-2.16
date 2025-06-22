@@ -1,17 +1,23 @@
 // Define a projective scheme invariant under the subgroup H of S_6
 PermutationScheme := function(H)
-    P<a0,a1,a2,a3,a4,a5> := ProjectiveSpace(Rationals(), 5);
-    eqns := [];
+    A1 := AffineSpace(Rationals(), 1);
+    P5 := ProjectiveSpace(Rationals(), 5);
+    P<a0,a1,a2,a3,a4,a5,t> := P5 * A1;
+
+    coords := [a0,a1,a2,a3,a4,a5];
+    eqns   := [];
     for g in Generators(H) do
+        perm := [ coords[i^g] : i in [1..6] ]; // apply the permutation
+        perm[6] := t * perm[6];                // scale the sixth coordinate
         M := Matrix([
             [1, 1, 1, 1, 1, 0],
-            [a0, a1, a2, a3, a4, a5],
-            [a0^g, a1^g, a2^g, a3^g, a4^g, a5^g]
+            coords,
+            perm
         ]);
         eqns cat:= Minors(M, 3);
     end for;
     X := Scheme(P, eqns);
-    
+
     // Remove trivial or degenerate components
     Y := Scheme(P, &*[a0,a1,a2,a3,a4,a5]) 
            join
