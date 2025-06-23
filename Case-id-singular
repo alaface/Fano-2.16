@@ -9,11 +9,28 @@ FindLis := function(g,FF)
     return [U`subgroup:U in Subgroups(H)|Pmat in U`subgroup and scale in U`subgroup and -IdentityMatrix(FF,n) in U`subgroup];
 end function;
 
+Stab := function(L,FF,g)
+    n:=6;
+    Glin:=GL(n,FF);
+    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..n] ]):i in [1..n]];
+    Pmat:=PermutationMatrix(FF,g);
+    zeta:=FF.1;
+    scale:=DiagonalMatrix(FF,[1 : k in [1..n-1]] cat [zeta]);
+    H:=sub< Glin | Dgens cat [Pmat,scale] >;
+    P5 := Ambient(L);
+    sta := [];
+    for A in H do
+       phi := map<P5->P5|[&+[A[i][j]*P5.j : j in [1..6]] : i in [1..6]]>;
+       if phi(L) eq L then Append(~sta,A); end if;
+    end for;
+    return sub<H|sta>;
+end function;
+
 
 FF<i>:=CyclotomicField(4);
 load "library.m";
 load "Grassmannian-subvarieties-singular";
-g:=Sym(6)!(1,2)(3,4);
+g:=Identity(Sym(6));
 lis:=FindLis(g,FF);
 
 Grp:=[];PGrp:=[];LFix:=[];
@@ -38,28 +55,6 @@ end for;
 Dime := [Dimension(Z):Z in LFix];
 GrName := [GroupName(G):G in PGrp];
 
-Stab := function(L,FF,g)
-    v := [1,5,2,4,3,7];
-    P5 := Ambient(L);
-    Q0 := Scheme(P5,&+[P5.i^2 : i in [1..5]]);
-    Q := Scheme(P5,&+[v[i]*P5.i^2 : i in [1..6]]);
-    mon := Sections(LinearSystem(P5,2));
-    Glin:=GL(6,FF);
-    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..6] ]):i in [1..6]];
-    Pmat:=PermutationMatrix(FF,g);
-    zeta:=FF.1;
-    scale:=DiagonalMatrix(FF,[1 : k in [1..5]] cat [zeta]);
-    H:=sub< Glin | Dgens cat [Pmat,scale] >;
-    sta := [];
-    for A in H do
-       phi := map<P5->P5|[&+[A[i][j]*P5.j : j in [1..6]] : i in [1..6]]>;
-       lis:=[[MonomialCoefficient(Equation(X),m) : m in mon] : X in [Q0,Q,phi(Q0),phi(Q)]];
-       M := Matrix(lis);
-       if phi(L) eq L and Rank(M) eq 2 then Append(~sta,A); end if;
-    end for;
-    return sub<H|sta>;
-end function;
-
 comp := [];
 for i in [1..#Dime] do
     if Dime[i] eq 0 then
@@ -73,17 +68,3 @@ end for;
 for co in comp do
    <co[1],GroupName(quo<co[2]|-IdentityMatrix(FF,6)>)>;
 end for;
-
-H := comp[1][2];
-H0 := sub<H|-IdentityMatrix(FF,6)>;
-
-repeat
-   ll := [Random(H) : i in [1..3]] cat [-IdentityMatrix(FF,6)];
-until sub<H|ll> eq H and #[g : g in ll | g^2 in H0] eq 3;
-
-H := comp[3][2];
-H0 := sub<H|-IdentityMatrix(FF,6)>;
-
-repeat
-   ll := [Random(H) : i in [1..3]] cat [-IdentityMatrix(FF,6)];
-until sub<H|ll> eq H and #[g : g in ll | g^2 in H0] eq 3;

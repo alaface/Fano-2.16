@@ -19,7 +19,7 @@ PermutationScheme := function(H)
     X := Scheme(P, eqns);
 
     // Remove trivial or degenerate components
-    Y := Scheme(P, &*[a0,a1,a2,a3,a4,a5]) 
+    Y := Scheme(P, a5) 
            join
          Scheme(P, &*[P.i - P.j : i,j in [1..6] | i lt j]);
     return Complement(X, Y);

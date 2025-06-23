@@ -1,34 +1,21 @@
-// ---------- utility ------------------------------------------------
 FindLis := function(g,FF)
-    n := Degree(g);
-    Glin := GL(n,FF);
-
-    Dgens := [ DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..n] ])
-               : i in [1..n] ];
-
-    Pmat  := PermutationMatrix(FF,g);      // (12345)
-    zeta  := FF.1;                         // primitive 5-th root
-    scale := DiagonalMatrix(FF,[ 1 : k in [1..n-1] ] cat [ zeta ]);
-
-    H := sub< Glin | Dgens cat [ Pmat, scale ] >;
-
-    return [ U`subgroup : U in Subgroups(H)
-             | Pmat  in U`subgroup
-             and scale in U`subgroup
-             and -IdentityMatrix(FF,n) in U`subgroup ];
+    n:=6;
+    Glin:=GL(n,FF);
+    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..n] ]):i in [1..n]];
+    Pmat:=PermutationMatrix(FF,g);
+    zeta:=FF.1;
+    scale:=DiagonalMatrix(FF,[1 : k in [1..n-1]] cat [zeta]);
+    H:=sub< Glin | Dgens cat [Pmat,scale] >;
+    return [U`subgroup:U in Subgroups(H)|Pmat in U`subgroup and scale in U`subgroup and -IdentityMatrix(FF,n) in U`subgroup];
 end function;
 
-// ---------- data ---------------------------------------------------
 FF<e> := CyclotomicField(5);
 load "library.m";
-load "Grassmannian-subvarieties.txt";
+load "Grassmannian-subvarieties-singular";
 
-g   := Sym(6)!(1,2,3,4,5);        // cycle (12345)
+g   := Sym(6)!(1,2,3,4,5);
 lis := FindLis(g,FF);
-
-// ---------- fixed-locus search ------------------------------------
 Grp  := [];  PGrp := [];  LFix := [];
-
 for H in lis do
     lFix := [];
     for h in Generators(H) do
@@ -38,7 +25,6 @@ for H in lis do
         Append(~lFix,Z);
         if #lFix gt 0 and Dimension(&meet lFix) eq -1 then break; end if;
     end for;
-
     ZFix := (#lFix eq 0) select W else &meet lFix;
     if Dimension(ZFix) ne -1 then
         Append(~LFix,ZFix);
@@ -47,11 +33,50 @@ for H in lis do
     end if;
 end for;
 
-// ---------- outputs ------------------------------------------------
 Dime    := [ Dimension(Z) : Z in LFix ];
 GrName  := [ GroupName(G) : G in PGrp ];
 
+
+Stab := function(L,FF,g)
+    v := [4*e^3 + 2,4*e^3 + 4*e + 2,-4*e^2 - 2,-2,2,1];
+    P5 := Ambient(L);
+    Q0 := Scheme(P5,&+[P5.i^2 : i in [1..5]]);
+    Q := Scheme(P5,&+[v[i]*P5.i^2 : i in [1..6]]);
+    mon := Sections(LinearSystem(P5,2));
+    Glin:=GL(6,FF);
+    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..6] ]):i in [1..6]];
+    Pmat:=PermutationMatrix(FF,g);
+    zeta:=FF.1;
+    scale:=DiagonalMatrix(FF,[1 : k in [1..5]] cat [zeta]);
+    H:=sub< Glin | Dgens cat [Pmat,scale] >;
+    sta := [];
+    for A in H do
+       phi := map<P5->P5|[&+[A[i][j]*P5.j : j in [1..6]] : i in [1..6]]>;
+       lis:=[[MonomialCoefficient(Equation(X),m) : m in mon] : X in [Q0,Q,phi(Q0),phi(Q)]];
+       M := Matrix(lis);
+       if phi(L) eq L and Rank(M) eq 2 then Append(~sta,A); end if;
+    end for;
+    return sub<H|sta>;
+end function;
+
 comp := [];
 for i in [1..#Dime] do
-    Append(~comp,PrimeComponents(pr(Fiber(pl,LFix[i]))));
+    if Dime[i] eq 0 then
+       co := PrimeComponents(pr(Fiber(pl, LFix[i])));
+       for C in co do
+          Append(~comp,<C,Stab(C,FF,g)>);
+       end for;
+    end if;
 end for;
+
+for co in comp do
+   <co[1],GroupName(quo<co[2]|-IdentityMatrix(FF,6)>)>;
+end for;
+
+H := comp[2][2];
+H0 := sub<H|-IdentityMatrix(FF,6)>;
+
+repeat
+   ll := [Random(H) : i in [1..1]] cat [-IdentityMatrix(FF,6)];
+until sub<H|ll> eq H;
+
