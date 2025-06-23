@@ -1,0 +1,43 @@
+FindLis := function(g,FF)
+    n:=Degree(g);
+    Glin:=GL(n,FF);
+    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..n] ]):i in [1..n]];
+    Pmat:=PermutationMatrix(FF,g);
+    zeta:=FF.1;
+    scale:=DiagonalMatrix(FF,[1 : k in [1..n-1]] cat [zeta]);
+    H:=sub< Glin | Dgens cat [Pmat,scale] >;
+    return [U`subgroup:U in Subgroups(H)|Pmat in U`subgroup and scale in U`subgroup and -IdentityMatrix(FF,n) in U`subgroup];
+end function;
+
+FF<i>:=CyclotomicField(4);
+load "library.m";
+load "Grassmannian-subvarieties.txt";
+g:=Sym(6)!(1,2)(3,4);
+lis:=FindLis(g,FF);
+
+Grp:=[];PGrp:=[];LFix:=[];
+for H in lis do
+    lFix:=[];
+    for h in Generators(H) do
+        Wh:=Matrix(CoordinateRing(P19),WedgePower(h,3));
+        N:=Matrix(CoordinateRing(P19),[v,Eltseq(x*Wh)]);
+        Fix:=Scheme(P19,Minors(N,2)) meet Gr;
+        Z:=Fix meet W;
+        Append(~lFix,Z);
+        if #lFix gt 0 and Dimension(&meet lFix) eq -1 then break; end if;
+    end for;
+    ZFix:=(#lFix eq 0) select W else &meet lFix;
+    if Dimension(ZFix) ne -1 then
+        Append(~LFix,ZFix);
+        Append(~Grp,H);
+        Append(~PGrp,quo< H | -IdentityMatrix(FF,6) >);
+    end if;
+end for;
+
+Dime := [Dimension(Z):Z in LFix];
+GrName := [GroupName(G):G in PGrp];
+
+comp := [];
+for i in [3..#Dime] do
+    Append(~comp,PrimeComponents(pr(Fiber(pl, LFix[i]))));
+end for;
