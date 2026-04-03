@@ -1,28 +1,26 @@
 // Define a projective scheme invariant under the subgroup H of S_6
 PermutationScheme := function(H)
-    A1 := AffineSpace(Rationals(), 1);
+    gens := Setseq(Generators(H));
+    r := #gens;
+    A := AffineSpace(Rationals(), r);
     P5 := ProjectiveSpace(Rationals(), 5);
-    P<a0,a1,a2,a3,a4,a5,t> := P5 * A1;
+    P := P5 * A;
+    R := CoordinateRing(P);
 
-    coords := [a0,a1,a2,a3,a4,a5];
-    eqns   := [];
-    for g in Generators(H) do
-        perm := [ coords[i^g] : i in [1..6] ]; // apply the permutation
-        perm[6] := t * perm[6];                // scale the sixth coordinate
-        M := Matrix([
-            [1, 1, 1, 1, 1, 0],
-            coords,
-            perm
-        ]);
-        eqns cat:= Minors(M, 3);
+    coords := [P.i : i in [1..6]];
+    pars := [P.(6+i) : i in [1..r]];
+
+    eqns := [];
+    for k in [1..r] do
+        g := gens[k];
+        perm := [j eq 6 select pars[k]^2*coords[j^g] else coords[j^g] : j in [1..6]];
+        eqns cat:= Minors(Matrix(R, [[1,1,1,1,1,0], coords, perm]), 3);
     end for;
-    X := Scheme(P, eqns);
 
-    // Remove trivial or degenerate components
-    Y := Scheme(P, a5) 
-           join
-         Scheme(P, &*[P.i - P.j : i,j in [1..6] | i lt j]);
-    return Complement(X, Y);
+    bad := Scheme(P, coords[6]) join
+           Scheme(P, &*[coords[i]-coords[j] : i,j in [1..6] | i lt j]);
+
+    return Complement(Scheme(P, eqns), bad);
 end function;
 
 // Filter subgroups of G based on the dimension of the associated scheme
