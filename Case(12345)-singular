@@ -6,7 +6,7 @@ FindLis := function(g,FF)
     zeta:=FF.1;
     scale:=DiagonalMatrix(FF,[1 : k in [1..n-1]] cat [zeta]);
     H:=sub< Glin | Dgens cat [Pmat,scale] >;
-    return [U`subgroup:U in Subgroups(H)|Pmat in U`subgroup and scale in U`subgroup and -IdentityMatrix(FF,n) in U`subgroup];
+    return [U`subgroup : U in Subgroups(H) | -IdentityMatrix(FF,n) in U`subgroup and &or[AbsMatrix(s,FF) eq Pmat : s in U`subgroup]];
 end function;
 
 FF<e> := CyclotomicField(5);
