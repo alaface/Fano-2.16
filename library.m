@@ -75,3 +75,22 @@ Fiber := function(f,Z)
     X := Scheme(P,[Evaluate(g,equ) : g in bas]);
     return Complement(X,Scheme(P,equ));
 end function;
+
+// Returns the name of the projective quotient modulo -I
+// Input: subgroup H of GL(n,K)
+// Output: GroupName of H / < -I >
+GroupNameProj := function(H)
+    return GroupName(quo< H | -IdentityMatrix(BaseRing(H.1), NumberOfRows(H.1)) >);
+end function;
+
+// Checks whether a pair <scheme, string> already appears in a list
+// Input: pair = <L,nm>, seen = list of such pairs
+// Output: true if pair is already in seen, false otherwise
+AlreadySeen := function(pair,seen)
+    for q in seen do
+        if pair[1] eq q[1] and pair[2] eq q[2] then
+            return true;
+        end if;
+    end for;
+    return false;
+end function;
