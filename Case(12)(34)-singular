@@ -7,23 +7,13 @@ FindLis := function(g,FF)
     Glin:=GL(n,FF);
     Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..n] ]):i in [1..n]];
     Pmat:=PermutationMatrix(FF,g);
-    H:=sub< Glin | Dgens, Pmat >;
-    return [U`subgroup : U in Subgroups(H) | -IdentityMatrix(FF,n) in U`subgroup];
-end function;
-
-Stab := function(L,FF,g)
-    n:=6;
-    Glin:=GL(n,FF);
-    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..n] ]):i in [1..n]];
-    Pmat:=PermutationMatrix(FF,g);
-    H:=sub< Glin | Dgens, Pmat >;
-    P5 := Ambient(L);
-    sta := [];
-    for A in H do
-       phi := map<P5->P5|[&+[A[i][j]*P5.j : j in [1..6]] : i in [1..6]]>;
-       if phi(L) eq L then Append(~sta,A); end if;
-    end for;
-    return sub<H|sta>;
+    zeta:=FF.1;
+    scale:=DiagonalMatrix(FF,[1 : k in [1..n-1]] cat [zeta]);
+    H:=sub< Glin | Dgens cat [Pmat,scale] >;
+    return [U`subgroup : U in Subgroups(H) |
+        -IdentityMatrix(FF,n) in U`subgroup and
+        &or[AbsMatrix(s,FF) eq Pmat : s in U`subgroup]
+    ];
 end function;
 
 FixedLocus := function(H)
@@ -41,15 +31,37 @@ FixedLocus := function(H)
     return (#lFix eq 0) select W else &meet lFix;
 end function;
 
+Stab := function(L,FF,g)
+    v := [1,5,2,4,3,7];
+    P5 := Ambient(L);
+    Q0 := Scheme(P5,&+[P5.i^2 : i in [1..5]]);
+    Q := Scheme(P5,&+[v[i]*P5.i^2 : i in [1..6]]);
+    mon := Sections(LinearSystem(P5,2));
+    Glin:=GL(6,FF);
+    Dgens:=[DiagonalMatrix(FF,[ (j eq i) select -1 else 1 : j in [1..6] ]):i in [1..6]];
+    Pmat:=PermutationMatrix(FF,g);
+    zeta:=FF.1;
+    scale:=DiagonalMatrix(FF,[1 : k in [1..5]] cat [zeta]);
+    H:=sub< Glin | Dgens cat [Pmat,scale] >;
+    sta := [];
+    for A in H do
+       phi := map<P5->P5|[&+[A[i][j]*P5.j : j in [1..6]] : i in [1..6]]>;
+       lis:=[[MonomialCoefficient(Equation(X),m) : m in mon] : X in [Q0,Q,phi(Q0),phi(Q)]];
+       M := Matrix(lis);
+       if phi(L) eq L and Rank(M) eq 2 then Append(~sta,A); end if;
+    end for;
+    return sub<H|sta>;
+end function;
+
 SamplePointOnGrassmannComponent := function(C)
     A := Ambient(C);
     Y := C;
-    while Dimension(Y) gt 0 do
+    repeat
         f := &+[ Random([-2..2])*A.i : i in [1..20] ];
         if f ne 0 then
             Y := Y meet Scheme(A,f);
         end if;
-    end while;
+    until Dimension(Y) eq 0 and Degree(Y) gt 0;
     return PrimeComponents(Y)[1];
 end function;
 
@@ -57,7 +69,7 @@ PlaneFromGrassmannPoint := function(Z)
     return PrimeComponents(pr(Fiber(pl,Z)))[1];
 end function;
 
-g:=Identity(Sym(6));
+g:=Sym(6)!(1,2)(3,4);
 lis:=FindLis(g,FF);
 
 Grp:=[]; PGrp:=[]; LFix:=[]; Dime:=[]; GrName:=[];
@@ -86,7 +98,6 @@ seen := [];
 
 // zero-dimensional components
 for t in Comps do
-    i := t[1];
     C := t[2];
     if Dimension(C) eq 0 then
         L := PlaneFromGrassmannPoint(C);
